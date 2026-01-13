@@ -275,10 +275,60 @@ main {
   margin-top: 16px;
 }
 
+.form-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hidden {
+  display: none;
+}
+
 .lookup {
   margin-top: 12px;
   display: grid;
   gap: 10px;
+}
+
+.lookup p {
+  margin: 0;
+}
+
+.met-box {
+  padding: 14px;
+  border-radius: 18px;
+  background: var(--panel-strong);
+  display: grid;
+  gap: 10px;
+}
+
+.checkline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.checkline input {
+  width: 18px;
+  height: 18px;
+}
+
+.met-note {
+  font-size: 0.75rem;
+}
+
+.range-label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.range-label input[type="range"] {
+  width: 100%;
 }
 
 .lookup label {
@@ -345,11 +395,25 @@ main {
   padding: 12px 14px;
   border-radius: 16px;
   font-size: 0.9rem;
+  gap: 12px;
 }
 
 .list-item span {
   color: var(--muted);
   font-size: 0.8rem;
+}
+
+.list-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.list-btn {
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  border-radius: 999px;
+  box-shadow: none;
 }
 
 .summary-grid {

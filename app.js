@@ -18,8 +18,11 @@ const mealSearch = document.querySelector("#mealSearch");
 const mealSearchBtn = document.querySelector("#mealSearchBtn");
 const mealResults = document.querySelector("#mealResults");
 const mealUseBtn = document.querySelector("#mealUseBtn");
+const mealUnits = document.querySelector("#mealUnits");
 const mealLookupStatus = document.querySelector("#mealLookupStatus");
 const mealServing = document.querySelector("#mealServing");
+const mealSubmit = document.querySelector("#mealSubmit");
+const mealCancel = document.querySelector("#mealCancel");
 const calorieTotal = document.querySelector("#calorieTotal");
 const proteinTotal = document.querySelector("#proteinTotal");
 const carbTotal = document.querySelector("#carbTotal");
@@ -34,6 +37,23 @@ const sessionTotal = document.querySelector("#sessionTotal");
 const minutesTotal = document.querySelector("#minutesTotal");
 const burnGoal = document.querySelector("#burnGoal");
 const burnProgress = document.querySelector("#burnProgress");
+const workoutSubmit = document.querySelector("#workoutSubmit");
+const workoutCancel = document.querySelector("#workoutCancel");
+const exerciseName = document.querySelector("#exerciseName");
+const exerciseMinutes = document.querySelector("#exerciseMinutes");
+const exerciseCalories = document.querySelector("#exerciseCalories");
+const metToggle = document.querySelector("#metToggle");
+const metWeight = document.querySelector("#metWeight");
+const metUnit = document.querySelector("#metUnit");
+const metIntensity = document.querySelector("#metIntensity");
+const metType = document.querySelector("#metType");
+const metRpe = document.querySelector("#metRpe");
+const metRest = document.querySelector("#metRest");
+const metRpeValue = document.querySelector("#metRpeValue");
+const metRestValue = document.querySelector("#metRestValue");
+const volumeToggle = document.querySelector("#volumeToggle");
+const volumeTotal = document.querySelector("#volumeTotal");
+const volumeUnit = document.querySelector("#volumeUnit");
 
 const statusLabel = document.querySelector("#statusLabel");
 const statusMessage = document.querySelector("#statusMessage");
@@ -51,9 +71,23 @@ const fmt = (value) => Math.round(value).toString();
 
 let searchTimer = null;
 let lastLookupNutrients = null;
+let lastLookupUnits = null;
+let editingMealId = null;
+let editingWorkoutId = null;
+
+const METS = {
+  strength: { light: 3.5, moderate: 5, heavy: 6 },
+  hiit: { light: 6, moderate: 8, heavy: 10 },
+  circuit: { light: 4, moderate: 6, heavy: 8 },
+  yoga: { light: 2.5, moderate: 3.5, heavy: 4.5 },
+};
 
 const setLookupStatus = (message) => {
   mealLookupStatus.textContent = message;
+};
+
+const setUnitsStatus = (message) => {
+  mealUnits.textContent = message;
 };
 
 const applyServingScale = () => {
@@ -74,19 +108,31 @@ const applyServingScale = () => {
 
 const extractNutrients = (food) => {
   const nutrients = {};
+  const units = {};
   if (!food || !Array.isArray(food.foodNutrients)) {
-    return nutrients;
+    return { nutrients, units };
   }
 
   food.foodNutrients.forEach((nutrient) => {
     nutrients[nutrient.nutrientName] = nutrient.value;
+    if (nutrient.unitName) {
+      units[nutrient.nutrientName] = nutrient.unitName.toLowerCase();
+    }
   });
 
   return {
-    calories: nutrients["Energy"] || nutrients["Energy (kcal)"] || 0,
-    protein: nutrients["Protein"] || 0,
-    carbs: nutrients["Carbohydrate, by difference"] || 0,
-    fat: nutrients["Total lipid (fat)"] || 0,
+    nutrients: {
+      calories: nutrients["Energy"] || nutrients["Energy (kcal)"] || 0,
+      protein: nutrients["Protein"] || 0,
+      carbs: nutrients["Carbohydrate, by difference"] || 0,
+      fat: nutrients["Total lipid (fat)"] || 0,
+    },
+    units: {
+      calories: units["Energy"] || units["Energy (kcal)"] || "kcal",
+      protein: units["Protein"] || "g",
+      carbs: units["Carbohydrate, by difference"] || "g",
+      fat: units["Total lipid (fat)"] || "g",
+    },
   };
 };
 
@@ -132,9 +178,11 @@ const searchFoods = async () => {
       const option = document.createElement("option");
       option.value = food.fdcId;
       option.textContent = `${food.description} (${food.dataType})`;
+      const { nutrients, units } = extractNutrients(food);
       option.dataset.food = JSON.stringify({
         name: food.description,
-        nutrients: extractNutrients(food),
+        nutrients,
+        units,
       });
       mealResults.appendChild(option);
     });
@@ -155,9 +203,13 @@ const useSelectedFood = () => {
 
   const payload = JSON.parse(selected.dataset.food);
   lastLookupNutrients = payload.nutrients;
+  lastLookupUnits = payload.units;
   document.querySelector("#mealName").value = payload.name;
   mealServing.value = "1";
   applyServingScale();
+  setUnitsStatus(
+    `Units: calories ${payload.units.calories}, protein ${payload.units.protein}, carbs ${payload.units.carbs}, fat ${payload.units.fat}`
+  );
   setLookupStatus("Autofilled. Edit values if needed, then add meal.");
 };
 
@@ -167,6 +219,13 @@ const saveState = () => {
     workouts: state.workouts,
     calorieGoal: Number(calorieGoal.value) || 0,
     burnGoal: Number(burnGoal.value) || 0,
+    metWeight: Number(metWeight.value) || 0,
+    metUnit: metUnit.value,
+    metType: metType.value,
+    metIntensity: metIntensity.value,
+    metRpe: Number(metRpe.value) || 6,
+    metRest: Number(metRest.value) || 0,
+    volumeUnit: volumeUnit.value,
     palette: paletteSelect.value,
     theme: document.body.dataset.theme || "light",
   };
@@ -189,6 +248,29 @@ const loadState = () => {
     }
     if (typeof snapshot.burnGoal === "number") {
       burnGoal.value = snapshot.burnGoal || 0;
+    }
+    if (typeof snapshot.metWeight === "number" && snapshot.metWeight > 0) {
+      metWeight.value = snapshot.metWeight;
+    }
+    if (snapshot.metUnit) {
+      metUnit.value = snapshot.metUnit;
+    }
+    if (snapshot.metType) {
+      metType.value = snapshot.metType;
+    }
+    if (snapshot.metIntensity) {
+      metIntensity.value = snapshot.metIntensity;
+    }
+    if (typeof snapshot.metRpe === "number") {
+      metRpe.value = snapshot.metRpe || 6;
+      metRpeValue.textContent = metRpe.value;
+    }
+    if (typeof snapshot.metRest === "number") {
+      metRest.value = snapshot.metRest || 0;
+      metRestValue.textContent = `${metRest.value}%`;
+    }
+    if (snapshot.volumeUnit) {
+      volumeUnit.value = snapshot.volumeUnit;
     }
     if (snapshot.palette) {
       paletteSelect.value = snapshot.palette;
@@ -232,9 +314,15 @@ const renderMeals = () => {
     row.innerHTML = `
       <div>
         <strong>${meal.name}</strong>
-        <span>${meal.calories} cal - P ${meal.protein}g - C ${meal.carbs}g - F ${meal.fat}g</span>
+        <span>${meal.calories} cal - P ${meal.protein}g - C ${meal.carbs}g - F ${
+          meal.fat
+        }g - ${meal.servings} serv</span>
       </div>
-      <span>${meal.time}</span>
+      <div class="list-actions">
+        <button class="list-btn ghost" data-action="edit" data-id="${meal.id}">Edit</button>
+        <button class="list-btn" data-action="delete" data-id="${meal.id}">Delete</button>
+        <span>${meal.time}</span>
+      </div>
     `;
     mealList.appendChild(row);
   });
@@ -245,12 +333,18 @@ const renderWorkouts = () => {
   state.workouts.slice().reverse().forEach((workout) => {
     const row = document.createElement("div");
     row.className = "list-item";
+    const methodLabel =
+      workout.method === "met" ? `METs ${workout.intensity}` : "manual";
     row.innerHTML = `
       <div>
         <strong>${workout.name}</strong>
-        <span>${workout.minutes} min - ${workout.calories} cal burned</span>
+        <span>${workout.minutes} min - ${workout.calories} cal burned - ${methodLabel}</span>
       </div>
-      <span>${workout.time}</span>
+      <div class="list-actions">
+        <button class="list-btn ghost" data-action="edit" data-id="${workout.id}">Edit</button>
+        <button class="list-btn" data-action="delete" data-id="${workout.id}">Delete</button>
+        <span>${workout.time}</span>
+      </div>
     `;
     exerciseList.appendChild(row);
   });
@@ -371,6 +465,85 @@ const updateSummary = (mealTotals, workoutTotals) => {
   actionList.innerHTML = actions.map((action) => `<li>${action}</li>`).join("");
 };
 
+const resetMealForm = () => {
+  mealForm.reset();
+  mealServing.value = "1";
+  editingMealId = null;
+  lastLookupNutrients = null;
+  lastLookupUnits = null;
+  setUnitsStatus("");
+  mealSubmit.textContent = "Add meal";
+  mealCancel.classList.add("hidden");
+};
+
+const ensureMealIds = () => {
+  state.meals = state.meals.map((meal) => ({
+    ...meal,
+    id: meal.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    servings: meal.servings || 1,
+  }));
+};
+
+const resetWorkoutForm = () => {
+  exerciseForm.reset();
+  editingWorkoutId = null;
+  workoutSubmit.textContent = "Log workout";
+  workoutCancel.classList.add("hidden");
+  metToggle.checked = false;
+  metWeight.value = "";
+  metUnit.value = "lb";
+  metIntensity.value = "moderate";
+  metType.value = "strength";
+  metRpe.value = "6";
+  metRest.value = "20";
+  metRpeValue.textContent = "6";
+  metRestValue.textContent = "20%";
+  volumeToggle.checked = false;
+  volumeTotal.value = "";
+  volumeUnit.value = "lb";
+};
+
+const ensureWorkoutIds = () => {
+  state.workouts = state.workouts.map((workout) => ({
+    ...workout,
+    id: workout.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+  }));
+};
+
+const getWeightKg = () => {
+  const raw = Number(metWeight.value);
+  if (!raw) {
+    return 0;
+  }
+  return metUnit.value === "lb" ? raw * 0.45359237 : raw;
+};
+
+const updateMetCalories = () => {
+  if (!metToggle.checked) {
+    return;
+  }
+  const minutes = Number(exerciseMinutes.value) || 0;
+  const weightKg = getWeightKg();
+  const type = metType.value || "strength";
+  const met = (METS[type] && METS[type][metIntensity.value]) || METS.strength.moderate;
+  if (!minutes || !weightKg) {
+    return;
+  }
+  const rpe = Number(metRpe.value) || 6;
+  const rest = Number(metRest.value) || 0;
+  const rpeFactor = 1 + (rpe - 5) * 0.05;
+  const restFactor = Math.max(0.4, 1 - rest / 100);
+  let calories = (met * 3.5 * weightKg * minutes * rpeFactor * restFactor) / 200;
+  if (volumeToggle.checked && Number(volumeTotal.value) > 0 && minutes > 0) {
+    const volume = Number(volumeTotal.value);
+    const volumeKg = volumeUnit.value === "lb" ? volume * 0.45359237 : volume;
+    const density = volumeKg / minutes;
+    const modifier = Math.min(0.15, Math.max(0, (density - 5) / 100));
+    calories *= 1 + modifier;
+  }
+  exerciseCalories.value = Math.round(calories);
+};
+
 mealForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const meal = {
@@ -379,6 +552,7 @@ mealForm.addEventListener("submit", (event) => {
     protein: Number(document.querySelector("#mealProtein").value),
     carbs: Number(document.querySelector("#mealCarbs").value),
     fat: Number(document.querySelector("#mealFat").value),
+    servings: Number(mealServing.value) || 1,
     time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
   };
 
@@ -386,20 +560,38 @@ mealForm.addEventListener("submit", (event) => {
     return;
   }
 
-  state.meals.push(meal);
-  mealForm.reset();
-  mealServing.value = "1";
-  lastLookupNutrients = null;
+  if (editingMealId) {
+    state.meals = state.meals.map((item) =>
+      item.id === editingMealId ? { ...item, ...meal } : item
+    );
+  } else {
+    meal.id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    state.meals.push(meal);
+  }
+  resetMealForm();
   renderMeals();
   updateTotals();
 });
 
 exerciseForm.addEventListener("submit", (event) => {
   event.preventDefault();
+  const useMet = metToggle.checked;
+  if (useMet) {
+    updateMetCalories();
+  }
   const workout = {
-    name: document.querySelector("#exerciseName").value.trim(),
-    minutes: Number(document.querySelector("#exerciseMinutes").value),
-    calories: Number(document.querySelector("#exerciseCalories").value),
+    name: exerciseName.value.trim(),
+    minutes: Number(exerciseMinutes.value),
+    calories: Number(exerciseCalories.value),
+    method: useMet ? "met" : "manual",
+    intensity: useMet ? metIntensity.value : null,
+    metType: useMet ? metType.value : null,
+    rpe: useMet ? Number(metRpe.value) || 6 : null,
+    rest: useMet ? Number(metRest.value) || 0 : null,
+    volume: useMet && volumeToggle.checked ? Number(volumeTotal.value) || 0 : null,
+    volumeUnit: useMet && volumeToggle.checked ? volumeUnit.value : null,
+    weight: useMet ? Number(metWeight.value) || 0 : null,
+    weightUnit: useMet ? metUnit.value : null,
     time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
   };
 
@@ -407,8 +599,15 @@ exerciseForm.addEventListener("submit", (event) => {
     return;
   }
 
-  state.workouts.push(workout);
-  exerciseForm.reset();
+  if (editingWorkoutId) {
+    state.workouts = state.workouts.map((item) =>
+      item.id === editingWorkoutId ? { ...item, ...workout } : item
+    );
+  } else {
+    workout.id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    state.workouts.push(workout);
+  }
+  resetWorkoutForm();
   renderWorkouts();
   updateTotals();
 });
@@ -439,7 +638,127 @@ mealServing.addEventListener("input", applyServingScale);
   const field = document.querySelector(selector);
   field.addEventListener("input", () => {
     lastLookupNutrients = null;
+    lastLookupUnits = null;
+    setUnitsStatus("");
   });
+});
+
+metToggle.addEventListener("change", updateMetCalories);
+metWeight.addEventListener("input", updateMetCalories);
+metUnit.addEventListener("change", updateMetCalories);
+metIntensity.addEventListener("change", updateMetCalories);
+metType.addEventListener("change", updateMetCalories);
+metRpe.addEventListener("input", () => {
+  metRpeValue.textContent = metRpe.value;
+  updateMetCalories();
+});
+metRest.addEventListener("input", () => {
+  metRestValue.textContent = `${metRest.value}%`;
+  updateMetCalories();
+});
+exerciseMinutes.addEventListener("input", updateMetCalories);
+metWeight.addEventListener("change", saveState);
+metUnit.addEventListener("change", saveState);
+metType.addEventListener("change", saveState);
+metIntensity.addEventListener("change", saveState);
+metRpe.addEventListener("change", saveState);
+metRest.addEventListener("change", saveState);
+volumeToggle.addEventListener("change", updateMetCalories);
+volumeTotal.addEventListener("input", updateMetCalories);
+volumeUnit.addEventListener("change", updateMetCalories);
+volumeToggle.addEventListener("change", saveState);
+volumeUnit.addEventListener("change", saveState);
+
+mealCancel.addEventListener("click", () => {
+  resetMealForm();
+});
+
+mealList.addEventListener("click", (event) => {
+  const button = event.target.closest("button");
+  if (!button) {
+    return;
+  }
+
+  const action = button.dataset.action;
+  const id = button.dataset.id;
+  if (!action || !id) {
+    return;
+  }
+
+  if (action === "delete") {
+    state.meals = state.meals.filter((meal) => meal.id !== id);
+    renderMeals();
+    updateTotals();
+    return;
+  }
+
+  if (action === "edit") {
+    const meal = state.meals.find((item) => item.id === id);
+    if (!meal) {
+      return;
+    }
+    editingMealId = id;
+    document.querySelector("#mealName").value = meal.name;
+    document.querySelector("#mealCalories").value = meal.calories;
+    document.querySelector("#mealProtein").value = meal.protein;
+    document.querySelector("#mealCarbs").value = meal.carbs;
+    document.querySelector("#mealFat").value = meal.fat;
+    mealServing.value = meal.servings || 1;
+    lastLookupNutrients = null;
+    lastLookupUnits = null;
+    setUnitsStatus("Editing meal values (manual).");
+    mealSubmit.textContent = "Update meal";
+    mealCancel.classList.remove("hidden");
+  }
+});
+
+workoutCancel.addEventListener("click", () => {
+  resetWorkoutForm();
+});
+
+exerciseList.addEventListener("click", (event) => {
+  const button = event.target.closest("button");
+  if (!button) {
+    return;
+  }
+
+  const action = button.dataset.action;
+  const id = button.dataset.id;
+  if (!action || !id) {
+    return;
+  }
+
+  if (action === "delete") {
+    state.workouts = state.workouts.filter((workout) => workout.id !== id);
+    renderWorkouts();
+    updateTotals();
+    return;
+  }
+
+  if (action === "edit") {
+    const workout = state.workouts.find((item) => item.id === id);
+    if (!workout) {
+      return;
+    }
+    editingWorkoutId = id;
+    exerciseName.value = workout.name;
+    exerciseMinutes.value = workout.minutes;
+    exerciseCalories.value = workout.calories;
+    metToggle.checked = workout.method === "met";
+    metWeight.value = workout.weight || "";
+    metUnit.value = workout.weightUnit || "lb";
+    metIntensity.value = workout.intensity || "moderate";
+    metType.value = workout.metType || "strength";
+    metRpe.value = workout.rpe || 6;
+    metRest.value = workout.rest || 20;
+    metRpeValue.textContent = metRpe.value;
+    metRestValue.textContent = `${metRest.value}%`;
+    volumeToggle.checked = Boolean(workout.volume);
+    volumeTotal.value = workout.volume || "";
+    volumeUnit.value = workout.volumeUnit || "lb";
+    workoutSubmit.textContent = "Update workout";
+    workoutCancel.classList.remove("hidden");
+  }
 });
 
 calorieGoal.addEventListener("input", updateTotals);
@@ -459,6 +778,8 @@ tabs.forEach((tab) => {
 });
 
 loadState();
+ensureMealIds();
+ensureWorkoutIds();
 modeToggle.textContent = document.body.dataset.theme === "dark" ? "Light Mode" : "Dark Mode";
 updateTheme();
 renderMeals();
