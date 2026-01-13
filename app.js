@@ -103,13 +103,22 @@ const searchFoods = async () => {
   try {
     const url = new URL(USDA_SEARCH_URL);
     url.searchParams.set("api_key", USDA_API_KEY);
-    url.searchParams.set("query", query);
-    url.searchParams.set("pageSize", "10");
 
-    const response = await fetch(url.toString());
+    const response = await fetch(url.toString(), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        query,
+        pageSize: 10,
+      }),
+    });
 
     if (!response.ok) {
+      const detail = await response.text();
       setLookupStatus(`USDA lookup failed (${response.status}).`);
+      console.error(detail);
       return;
     }
 
