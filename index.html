@@ -172,11 +172,13 @@
                   <div class="split">
                     <label class="range-label">
                       RPE
+                      <span class="hint" title="Rate of Perceived Exertion: 1 easy, 10 max effort. Higher RPE increases calories.">(?)</span>
                       <input type="range" id="metRpe" min="1" max="10" value="6" />
                       <span id="metRpeValue">6</span>
                     </label>
                     <label class="range-label">
                       Rest %
+                      <span class="hint" title="Estimated percent of the workout spent resting. More rest reduces calories.">(?)</span>
                       <input type="range" id="metRest" min="0" max="60" value="20" />
                       <span id="metRestValue">20%</span>
                     </label>
@@ -186,13 +188,20 @@
                     Use volume modifier
                   </label>
                   <div class="split">
-                    <input type="number" id="volumeTotal" placeholder="Total volume lifted" min="0" />
+                    <input
+                      type="number"
+                      id="volumeTotal"
+                      placeholder="Total volume lifted"
+                      min="0"
+                      title="Total weight lifted = sum of (weight x reps) across all sets."
+                    />
                     <select id="volumeUnit">
                       <option value="lb" selected>lb</option>
                       <option value="kg">kg</option>
                     </select>
                   </div>
                   <p class="muted met-note">Calories = MET x 3.5 x weight(kg) / 200 x minutes.</p>
+                  <p class="muted met-note">METs depend on type + intensity, then adjust with RPE + rest.</p>
                 </div>
                 <div class="form-actions">
                   <button type="submit" id="workoutSubmit">Log workout</button>

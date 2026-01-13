@@ -501,6 +501,7 @@ const resetWorkoutForm = () => {
   volumeToggle.checked = false;
   volumeTotal.value = "";
   volumeUnit.value = "lb";
+  updateMetCalories();
 };
 
 const ensureWorkoutIds = () => {
@@ -520,13 +521,20 @@ const getWeightKg = () => {
 
 const updateMetCalories = () => {
   if (!metToggle.checked) {
+    exerciseCalories.disabled = false;
+    exerciseCalories.required = true;
+    exerciseCalories.placeholder = "Calories burned";
     return;
   }
+  exerciseCalories.disabled = true;
+  exerciseCalories.required = false;
   const minutes = Number(exerciseMinutes.value) || 0;
   const weightKg = getWeightKg();
   const type = metType.value || "strength";
   const met = (METS[type] && METS[type][metIntensity.value]) || METS.strength.moderate;
   if (!minutes || !weightKg) {
+    exerciseCalories.placeholder = "Calories (auto when ready)";
+    exerciseCalories.value = "";
     return;
   }
   const rpe = Number(metRpe.value) || 6;
@@ -542,6 +550,11 @@ const updateMetCalories = () => {
     calories *= 1 + modifier;
   }
   exerciseCalories.value = Math.round(calories);
+};
+
+const updateMetLabels = () => {
+  metRpeValue.textContent = metRpe.value;
+  metRestValue.textContent = `${metRest.value}%`;
 };
 
 mealForm.addEventListener("submit", (event) => {
@@ -643,17 +656,17 @@ mealServing.addEventListener("input", applyServingScale);
   });
 });
 
-metToggle.addEventListener("change", updateMetCalories);
+  metToggle.addEventListener("change", updateMetCalories);
 metWeight.addEventListener("input", updateMetCalories);
 metUnit.addEventListener("change", updateMetCalories);
 metIntensity.addEventListener("change", updateMetCalories);
 metType.addEventListener("change", updateMetCalories);
 metRpe.addEventListener("input", () => {
-  metRpeValue.textContent = metRpe.value;
+  updateMetLabels();
   updateMetCalories();
 });
 metRest.addEventListener("input", () => {
-  metRestValue.textContent = `${metRest.value}%`;
+  updateMetLabels();
   updateMetCalories();
 });
 exerciseMinutes.addEventListener("input", updateMetCalories);
@@ -785,3 +798,5 @@ updateTheme();
 renderMeals();
 renderWorkouts();
 updateTotals();
+updateMetLabels();
+updateMetCalories();

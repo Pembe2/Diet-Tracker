@@ -320,6 +320,19 @@ main {
   font-size: 0.75rem;
 }
 
+.hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 0.7rem;
+  cursor: help;
+}
+
 .range-label {
   display: grid;
   gap: 6px;
@@ -543,5 +556,19 @@ main {
 
   .card {
     padding: 18px;
+  }
+
+  .list-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .list-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .list-actions span {
+    margin-left: auto;
   }
 }
