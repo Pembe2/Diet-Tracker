@@ -81,6 +81,9 @@ let lastLookupUnits = null;
 let editingMealId = null;
 let editingWorkoutId = null;
 let moodChoice = null;
+let softPalette = "rose";
+let beastPalette = "steel";
+let isInitializing = true;
 
 const METS = {
   strength: { light: 3.5, moderate: 5, heavy: 6 },
@@ -89,10 +92,46 @@ const METS = {
   yoga: { light: 2.5, moderate: 3.5, heavy: 4.5 },
 };
 
+const PALETTES = {
+  soft: [
+    { value: "rose", label: "Rose Sorbet" },
+    { value: "mango", label: "Mango Milk" },
+    { value: "mint", label: "Mint Macaron" },
+    { value: "lilac", label: "Lilac Satin" },
+  ],
+  beast: [
+    { value: "steel", label: "Steel Pulse" },
+    { value: "ash", label: "Ash Noir" },
+    { value: "cinder", label: "Cinder Rust" },
+    { value: "oxide", label: "Oxide Moss" },
+  ],
+};
+
+const setPaletteOptions = (mood) => {
+  const options = PALETTES[mood] || PALETTES.soft;
+  paletteSelect.innerHTML = "";
+  options.forEach((option) => {
+    const item = document.createElement("option");
+    item.value = option.value;
+    item.textContent = option.label;
+    paletteSelect.appendChild(item);
+  });
+};
+
 function applyMood(mood) {
   moodChoice = mood;
   document.body.dataset.mood = mood;
   moodToggle.value = mood;
+  setPaletteOptions(mood);
+  const desired = mood === "beast" ? beastPalette : softPalette;
+  const hasOption = Array.from(paletteSelect.options).some((opt) => opt.value === desired);
+  paletteSelect.value = hasOption ? desired : paletteSelect.options[0].value;
+  if (mood === "beast") {
+    beastPalette = paletteSelect.value;
+  } else {
+    softPalette = paletteSelect.value;
+  }
+  document.body.dataset.palette = paletteSelect.value;
   if (mood === "beast") {
     siteEyebrow.textContent = "Performance tracker";
     siteSubtitle.textContent = "Eat fierce. Lift heavy. Own the day.";
@@ -242,6 +281,9 @@ const useSelectedFood = () => {
 };
 
 const saveState = () => {
+  if (isInitializing) {
+    return;
+  }
   const snapshot = {
     meals: state.meals,
     workouts: state.workouts,
@@ -254,6 +296,8 @@ const saveState = () => {
     metRpe: Number(metRpe.value) || 6,
     metRest: Number(metRest.value) || 0,
     volumeUnit: volumeUnit.value,
+    softPalette,
+    beastPalette,
     palette: paletteSelect.value,
     theme: document.body.dataset.theme || "light",
     mood: moodChoice,
@@ -300,6 +344,12 @@ const loadState = () => {
     }
     if (snapshot.volumeUnit) {
       volumeUnit.value = snapshot.volumeUnit;
+    }
+    if (snapshot.softPalette) {
+      softPalette = snapshot.softPalette;
+    }
+    if (snapshot.beastPalette) {
+      beastPalette = snapshot.beastPalette;
     }
     if (snapshot.palette) {
       paletteSelect.value = snapshot.palette;
@@ -658,6 +708,11 @@ exerciseForm.addEventListener("submit", (event) => {
 });
 
 paletteSelect.addEventListener("change", () => {
+  if (moodChoice === "beast") {
+    beastPalette = paletteSelect.value;
+  } else {
+    softPalette = paletteSelect.value;
+  }
   updateTheme();
 });
 
@@ -847,3 +902,4 @@ updateTotals();
 updateMetLabels();
 updateMetCalories();
 promptMoodIfNeeded();
+isInitializing = false;
