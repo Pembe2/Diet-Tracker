@@ -1,0 +1,241 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Diet Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="backdrop">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Daily glow tracker</p>
+          <h1>Diet Tracker</h1>
+          <p class="subtitle">Eat cute. Move cute. Feel unstoppable.</p>
+        </div>
+        <div class="controls">
+          <div class="control">
+            <label for="palette">Palette</label>
+            <select id="palette" aria-label="Color palette">
+              <option value="rose" selected>Rose Sorbet</option>
+              <option value="mango">Mango Milk</option>
+              <option value="mint">Mint Macaron</option>
+              <option value="lilac">Lilac Satin</option>
+            </select>
+          </div>
+          <button id="modeToggle" class="ghost">Dark Mode</button>
+        </div>
+      </header>
+
+      <nav class="tabs">
+        <button class="tab active" data-tab="meals">Meal Tracker</button>
+        <button class="tab" data-tab="exercise">Exercise Tracker</button>
+        <button class="tab" data-tab="summary">Summary</button>
+      </nav>
+
+      <main>
+        <section id="meals" class="panel active">
+          <div class="panel-header">
+            <div>
+              <h2>Meals</h2>
+              <p class="muted">Track every bite with glam accuracy.</p>
+            </div>
+            <div class="goal-card">
+              <span>Calorie goal</span>
+              <strong><input type="number" id="calorieGoal" value="1800" min="1200" /></strong>
+            </div>
+          </div>
+
+          <div class="grid">
+            <div class="card">
+              <h3>Add meal</h3>
+              <div class="lookup">
+                <label for="mealSearch">USDA lookup</label>
+                <div class="lookup-row">
+                  <input type="text" id="mealSearch" placeholder="Search food (e.g., salmon bowl)" />
+                  <button type="button" id="mealSearchBtn" class="ghost">Search</button>
+                </div>
+                <div class="lookup-row">
+                  <select id="mealResults" aria-label="USDA results">
+                    <option value="">Select a result to autofill</option>
+                  </select>
+                  <button type="button" id="mealUseBtn">Use selection</button>
+                </div>
+                <p id="mealLookupStatus" class="muted"></p>
+              </div>
+              <form id="mealForm" class="form">
+                <input type="text" id="mealName" placeholder="Meal name" required />
+                <input type="number" id="mealCalories" placeholder="Calories" min="0" required />
+                <div class="split">
+                  <input
+                    type="number"
+                    id="mealServing"
+                    placeholder="Servings"
+                    min="0.25"
+                    step="0.25"
+                    value="1"
+                    required
+                  />
+                </div>
+                <div class="split">
+                  <input type="number" id="mealProtein" placeholder="Protein (g)" min="0" required />
+                  <input type="number" id="mealCarbs" placeholder="Carbs (g)" min="0" required />
+                  <input type="number" id="mealFat" placeholder="Fat (g)" min="0" required />
+                </div>
+                <button type="submit">Add meal</button>
+              </form>
+            </div>
+
+            <div class="card">
+              <h3>Today</h3>
+              <div class="progress">
+                <div class="progress-bar" id="calorieProgress"></div>
+              </div>
+              <div class="metrics">
+                <div>
+                  <span>Total calories</span>
+                  <strong id="calorieTotal">0</strong>
+                </div>
+                <div>
+                  <span>Protein</span>
+                  <strong id="proteinTotal">0g</strong>
+                </div>
+                <div>
+                  <span>Carbs</span>
+                  <strong id="carbTotal">0g</strong>
+                </div>
+                <div>
+                  <span>Fat</span>
+                  <strong id="fatTotal">0g</strong>
+                </div>
+              </div>
+              <div id="mealList" class="list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="exercise" class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Exercise</h2>
+              <p class="muted">Stack your sweat sessions like gems.</p>
+            </div>
+            <div class="goal-card">
+              <span>Weekly burn goal</span>
+              <strong><input type="number" id="burnGoal" value="2000" min="0" /></strong>
+            </div>
+          </div>
+
+          <div class="grid">
+            <div class="card">
+              <h3>Add workout</h3>
+              <form id="exerciseForm" class="form">
+                <input type="text" id="exerciseName" placeholder="Workout type" required />
+                <div class="split">
+                  <input type="number" id="exerciseMinutes" placeholder="Minutes" min="0" required />
+                  <input type="number" id="exerciseCalories" placeholder="Calories burned" min="0" required />
+                </div>
+                <button type="submit">Log workout</button>
+              </form>
+            </div>
+
+            <div class="card">
+              <h3>This week</h3>
+              <div class="progress">
+                <div class="progress-bar" id="burnProgress"></div>
+              </div>
+              <div class="metrics">
+                <div>
+                  <span>Calories burned</span>
+                  <strong id="burnTotal">0</strong>
+                </div>
+                <div>
+                  <span>Sessions</span>
+                  <strong id="sessionTotal">0</strong>
+                </div>
+                <div>
+                  <span>Minutes</span>
+                  <strong id="minutesTotal">0</strong>
+                </div>
+              </div>
+              <div id="exerciseList" class="list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="summary" class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Summary</h2>
+              <p class="muted">Your glow up strategy, refreshed daily.</p>
+            </div>
+            <button id="resetDay" class="ghost">Reset day</button>
+          </div>
+
+          <div class="summary-grid">
+            <div class="card status-card" id="statusCard">
+              <p class="eyebrow">Goal status</p>
+              <h3 id="statusLabel">On track</h3>
+              <p id="statusMessage" class="muted"></p>
+              <div class="status-pill" id="statusPill">Balanced</div>
+            </div>
+
+            <div class="card">
+              <h3>Next moves</h3>
+              <ul id="actionList" class="action-list"></ul>
+            </div>
+
+            <div class="card">
+              <h3>Daily vibe</h3>
+              <div class="vibe">
+                <div>
+                  <span>Intake vs burn</span>
+                  <strong id="balanceTotal">0</strong>
+                </div>
+                <div>
+                  <span>Macro focus</span>
+                  <strong id="macroFocus">Protein pop</strong>
+                </div>
+                <div>
+                  <span>Consistency</span>
+                  <strong id="consistency">Building</strong>
+                </div>
+              </div>
+              <div class="mini-charts">
+                <div class="mini-chart">
+                  <span>Macro balance</span>
+                  <div class="bar-group" id="macroChart">
+                    <div class="bar" data-label="P"></div>
+                    <div class="bar" data-label="C"></div>
+                    <div class="bar" data-label="F"></div>
+                  </div>
+                </div>
+                <div class="mini-chart">
+                  <span>Workout streak</span>
+                  <div class="spark" id="workoutChart">
+                    <div class="spark-bar"></div>
+                    <div class="spark-bar"></div>
+                    <div class="spark-bar"></div>
+                    <div class="spark-bar"></div>
+                    <div class="spark-bar"></div>
+                    <div class="spark-bar"></div>
+                    <div class="spark-bar"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
