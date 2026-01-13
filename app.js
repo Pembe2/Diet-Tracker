@@ -101,19 +101,16 @@ const searchFoods = async () => {
   mealResults.innerHTML = "<option value=\"\">Select a result to autofill</option>";
 
   try {
-    const response = await fetch(`${USDA_SEARCH_URL}?api_key=${USDA_API_KEY}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        query,
-        pageSize: 10,
-      }),
-    });
+    const url = new URL(USDA_SEARCH_URL);
+    url.searchParams.set("api_key", USDA_API_KEY);
+    url.searchParams.set("query", query);
+    url.searchParams.set("pageSize", "10");
+
+    const response = await fetch(url.toString());
 
     if (!response.ok) {
-      throw new Error("USDA lookup failed");
+      setLookupStatus(`USDA lookup failed (${response.status}).`);
+      return;
     }
 
     const data = await response.json();
@@ -136,6 +133,7 @@ const searchFoods = async () => {
     setLookupStatus("Pick a result to autofill.");
   } catch (error) {
     setLookupStatus("USDA lookup failed. Check your connection or API key.");
+    console.error(error);
   }
 };
 
