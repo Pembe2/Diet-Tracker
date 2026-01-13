@@ -63,6 +63,12 @@ const balanceTotal = document.querySelector("#balanceTotal");
 const macroFocus = document.querySelector("#macroFocus");
 const consistency = document.querySelector("#consistency");
 const resetDay = document.querySelector("#resetDay");
+const moodModal = document.querySelector("#moodModal");
+const moodSoft = document.querySelector("#moodSoft");
+const moodBeast = document.querySelector("#moodBeast");
+const moodToggle = document.querySelector("#moodToggle");
+const siteSubtitle = document.querySelector("#siteSubtitle");
+const siteEyebrow = document.querySelector("#siteEyebrow");
 
 const macroBars = Array.from(document.querySelectorAll("#macroChart .bar"));
 const workoutBars = Array.from(document.querySelectorAll("#workoutChart .spark-bar"));
@@ -74,12 +80,34 @@ let lastLookupNutrients = null;
 let lastLookupUnits = null;
 let editingMealId = null;
 let editingWorkoutId = null;
+let moodChoice = null;
 
 const METS = {
   strength: { light: 3.5, moderate: 5, heavy: 6 },
   hiit: { light: 6, moderate: 8, heavy: 10 },
   circuit: { light: 4, moderate: 6, heavy: 8 },
   yoga: { light: 2.5, moderate: 3.5, heavy: 4.5 },
+};
+
+function applyMood(mood) {
+  moodChoice = mood;
+  document.body.dataset.mood = mood;
+  moodToggle.value = mood;
+  if (mood === "beast") {
+    siteEyebrow.textContent = "Performance tracker";
+    siteSubtitle.textContent = "Eat fierce. Lift heavy. Own the day.";
+  } else {
+    siteEyebrow.textContent = "Daily glow tracker";
+    siteSubtitle.textContent = "Eat cute. Move cute. Feel unstoppable.";
+  }
+}
+
+const promptMoodIfNeeded = () => {
+  if (moodChoice) {
+    moodModal.classList.add("hidden");
+    return;
+  }
+  moodModal.classList.remove("hidden");
 };
 
 const setLookupStatus = (message) => {
@@ -228,6 +256,7 @@ const saveState = () => {
     volumeUnit: volumeUnit.value,
     palette: paletteSelect.value,
     theme: document.body.dataset.theme || "light",
+    mood: moodChoice,
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
 };
@@ -279,6 +308,9 @@ const loadState = () => {
       document.body.dataset.theme = snapshot.theme;
     } else {
       document.body.dataset.theme = "light";
+    }
+    if (snapshot.mood) {
+      applyMood(snapshot.mood);
     }
   } catch (error) {
     document.body.dataset.theme = "light";
@@ -681,6 +713,20 @@ volumeTotal.addEventListener("input", updateMetCalories);
 volumeUnit.addEventListener("change", updateMetCalories);
 volumeToggle.addEventListener("change", saveState);
 volumeUnit.addEventListener("change", saveState);
+moodSoft.addEventListener("click", () => {
+  applyMood("soft");
+  saveState();
+  moodModal.classList.add("hidden");
+});
+moodBeast.addEventListener("click", () => {
+  applyMood("beast");
+  saveState();
+  moodModal.classList.add("hidden");
+});
+moodToggle.addEventListener("change", () => {
+  applyMood(moodToggle.value);
+  saveState();
+});
 
 mealCancel.addEventListener("click", () => {
   resetMealForm();
@@ -800,3 +846,4 @@ renderWorkouts();
 updateTotals();
 updateMetLabels();
 updateMetCalories();
+promptMoodIfNeeded();

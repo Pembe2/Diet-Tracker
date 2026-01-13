@@ -28,6 +28,19 @@ body[data-theme="dark"] {
   --shadow: 0 25px 50px rgba(0, 0, 0, 0.45);
 }
 
+body[data-mood="beast"] {
+  --bg-1: #161a1d;
+  --bg-2: #2b3136;
+  --panel: #1f252bcc;
+  --panel-strong: #262d34;
+  --ink: #f4f6f8;
+  --muted: #c6cbd0;
+  --accent: #ff4d4f;
+  --accent-2: #ffa24d;
+  --glow: rgba(255, 77, 79, 0.3);
+  --shadow: 0 22px 50px rgba(0, 0, 0, 0.5);
+}
+
 body[data-palette="mango"] {
   --bg-1: #fff1d9;
   --bg-2: #ffe3ba;
@@ -283,6 +296,31 @@ main {
 
 .hidden {
   display: none;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(12, 12, 16, 0.55);
+  display: grid;
+  place-items: center;
+  z-index: 10;
+  padding: 24px;
+}
+
+.modal-card {
+  width: min(420px, 100%);
+  background: var(--panel);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.modal-actions {
+  margin-top: 18px;
+  display: grid;
+  gap: 12px;
 }
 
 .lookup {

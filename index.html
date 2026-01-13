@@ -14,11 +14,22 @@
   </head>
   <body>
     <div class="backdrop">
+      <div id="moodModal" class="modal hidden" role="dialog" aria-modal="true">
+        <div class="modal-card">
+          <p class="eyebrow">Choose your vibe</p>
+          <h2>Pick your mood</h2>
+          <p class="muted">This sets the tone and visuals for your tracker.</p>
+          <div class="modal-actions">
+            <button id="moodSoft" class="ghost">Soft and Sweet</button>
+            <button id="moodBeast">Beast Mode</button>
+          </div>
+        </div>
+      </div>
       <header class="topbar">
         <div>
-          <p class="eyebrow">Daily glow tracker</p>
+          <p class="eyebrow" id="siteEyebrow">Daily glow tracker</p>
           <h1>Diet Tracker</h1>
-          <p class="subtitle">Eat cute. Move cute. Feel unstoppable.</p>
+          <p class="subtitle" id="siteSubtitle">Eat cute. Move cute. Feel unstoppable.</p>
         </div>
         <div class="controls">
           <div class="control">
@@ -28,6 +39,13 @@
               <option value="mango">Mango Milk</option>
               <option value="mint">Mint Macaron</option>
               <option value="lilac">Lilac Satin</option>
+            </select>
+          </div>
+          <div class="control">
+            <label for="moodToggle">Mood</label>
+            <select id="moodToggle" aria-label="Mood toggle">
+              <option value="soft">Soft and Sweet</option>
+              <option value="beast">Beast Mode</option>
             </select>
           </div>
           <button id="modeToggle" class="ghost">Dark Mode</button>
