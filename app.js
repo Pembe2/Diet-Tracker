@@ -101,7 +101,7 @@ const searchFoods = async () => {
   mealResults.innerHTML = "<option value=\"\">Select a result to autofill</option>";
 
   try {
-    const response = await fetch(USDA_SEARCH_URL, {
+    const response = await fetch(`${USDA_SEARCH_URL}?api_key=${USDA_API_KEY}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -109,7 +109,6 @@ const searchFoods = async () => {
       body: JSON.stringify({
         query,
         pageSize: 10,
-        api_key: USDA_API_KEY,
       }),
     });
 
